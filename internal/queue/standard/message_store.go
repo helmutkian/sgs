@@ -172,36 +172,52 @@ func (ms *messageStore) GetVisibleMessage() (int, *common.MessageWithVisibility,
 	return -1, nil, false
 }
 
-// ResetVisibility makes an in-flight message visible again
+// ResetVisibility makes a message visible again by moving it from in-flight
+// back to the pending messages collection
 func (ms *messageStore) ResetVisibility(receiptHandle string) bool {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
+	// Find the message in the in-flight collection
 	msg, exists := ms.inFlightMessages[receiptHandle]
 	if !exists {
 		return false
 	}
 
-	// Reset the message
-	msg.Status = common.MessageVisible
-	msg.InvisibleUntil = time.Time{}
-	oldReceipt := msg.ReceiptHandle
-	msg.ReceiptHandle = ""
+	// Make a copy of the message, reset its receipt handle and visibility
+	msgCopy := *msg
+	msgCopy.ReceiptHandle = ""
+	msgCopy.InvisibleUntil = time.Time{}
+	msgCopy.Status = common.MessageVisible
 
-	// Move from in-flight back to pending
-	ms.pendingMessages = append(ms.pendingMessages, msg)
-	delete(ms.inFlightMessages, oldReceipt)
+	// Add to pending messages
+	ms.pendingMessages = append(ms.pendingMessages, &msgCopy)
+
+	// Remove from in-flight messages
+	delete(ms.inFlightMessages, receiptHandle)
 
 	return true
 }
 
-// GetMessageByReceipt retrieves a message by its receipt handle
+// GetMessageByReceipt returns the message associated with the given receipt handle
 func (ms *messageStore) GetMessageByReceipt(receiptHandle string) (*common.MessageWithVisibility, bool) {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
-	msg, exists := ms.inFlightMessages[receiptHandle]
-	return msg, exists
+	// First check in-flight messages, as this is where messages with receipt handles should be
+	if msg, ok := ms.inFlightMessages[receiptHandle]; ok {
+		return msg, true
+	}
+
+	// Should not normally find receipt handles in pending messages,
+	// but check for completeness
+	for _, msg := range ms.pendingMessages {
+		if msg.ReceiptHandle == receiptHandle {
+			return msg, true
+		}
+	}
+
+	return nil, false
 }
 
 // GetMessageCount returns counts of visible and in-flight messages

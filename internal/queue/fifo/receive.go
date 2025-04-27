@@ -58,7 +58,7 @@ func (q *Queue) ReceiveMessageWithAttemptID(
 	defer q.Mu.Unlock()
 
 	// Wait until there are messages or shutdown
-	if !q.WaitForVisibleMessages(true) {
+	if !q.BaseQueue.WaitForVisibleMessages(q.hasVisibleMessages) {
 		return common.Message{}, "", false
 	}
 
@@ -277,4 +277,11 @@ func (q *Queue) ReceiveMessageBatchWithAttemptID(
 	}
 
 	return messages, receiptHandles, true
+}
+
+// hasVisibleMessages checks if there are any visible messages in FIFO groups
+func (q *Queue) hasVisibleMessages() bool {
+	// Use getVisibleMessageGroups to find any message groups with visible messages
+	groups := q.getVisibleMessageGroups()
+	return len(groups) > 0
 }

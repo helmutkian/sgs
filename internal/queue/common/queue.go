@@ -19,13 +19,14 @@ type BatchResult struct {
 
 // Default values for queue configuration
 const (
-	DefaultVisibilityTimeout     = 30 * time.Second
-	DefaultMaxReceiveCount       = 10
-	DefaultMaxDelay              = 15 * time.Minute
-	DefaultReceiveAttemptTimeout = 5 * time.Minute
-	DefaultDeduplicationInterval = 5 * time.Minute
-	DefaultMaxConcurrency        = 1
-	BatchResultFailureMessage    = "Receipt handle not found or message already deleted"
+	DefaultVisibilityTimeout       = 30 * time.Second
+	DefaultMaxReceiveCount         = 10
+	DefaultMaxDelay                = 15 * time.Minute
+	DefaultReceiveAttemptTimeout   = 5 * time.Minute
+	DefaultDeduplicationInterval   = 5 * time.Minute
+	DefaultMaxConcurrency          = 1
+	BatchResultFailureMessage      = "Receipt handle not found or message already deleted"
+	DefaultVisibilityCheckInterval = 1 * time.Second
 )
 
 type ChangeMessageVisibilityBatchItem struct {

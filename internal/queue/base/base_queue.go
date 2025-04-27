@@ -181,55 +181,6 @@ func (q *BaseQueue[I]) RecordReceiveAttempt(attemptID string, receiptHandles []s
 	}
 }
 
-// Getters for protected fields
-func (q *BaseQueue[I]) GetMutex() *sync.Mutex {
-	return &q.Mu
-}
-
-func (q *BaseQueue[I]) GetCond() *sync.Cond {
-	return q.Cond
-}
-
-func (q *BaseQueue[I]) GetShutdown() chan struct{} {
-	return q.Shutdown
-}
-
-func (q *BaseQueue[I]) GetProcessorPool() chan bool {
-	return q.ProcessorPool
-}
-
-func (q *BaseQueue[I]) GetWorkerWg() *sync.WaitGroup {
-	return &q.WorkerWG
-}
-
-func (q *BaseQueue[I]) GetProcessorFunc() MessageProcessor {
-	return q.ProcessorFunc
-}
-
-func (q *BaseQueue[I]) GetDefaultVisibility() time.Duration {
-	return q.DefaultVisibility
-}
-
-func (q *BaseQueue[I]) GetMaxReceiveCount() int {
-	return q.MaxReceiveCount
-}
-
-func (q *BaseQueue[I]) GetActiveWorkers() int {
-	return q.ActiveWorkers
-}
-
-func (q *BaseQueue[I]) GetMaxConcurrency() int {
-	return q.MaxConcurrency
-}
-
-func (q *BaseQueue[I]) SetActiveWorkers(count int) {
-	q.ActiveWorkers = count
-}
-
-func (q *BaseQueue[I]) SetMaxReceiveCount(count int) {
-	q.MaxReceiveCount = count
-}
-
 // GetQueueStats returns statistics about this queue
 func (q *BaseQueue[I]) GetQueueStats() map[string]any {
 	q.Mu.Lock()

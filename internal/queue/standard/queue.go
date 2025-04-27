@@ -48,7 +48,7 @@ func newQueue(processorFunc common.MessageProcessor) *queue {
 	q.ProcessorFunc = processorFunc
 
 	// Start background goroutines
-	q.BaseQueue.StartVisibilityChecker() // Use base implementation
+	q.StartVisibilityChecker()
 	go q.receiveAttemptsCleanup()
 
 	return q
@@ -241,47 +241,4 @@ func (q *Queue) Close() {
 	if q.deadLetterQueue != nil {
 		q.deadLetterQueue.Close()
 	}
-}
-
-// ForceCheckVisibilityTimeouts manually triggers a check for expired visibility timeouts.
-// This is primarily used for testing.
-func (q *queue) ForceCheckVisibilityTimeouts() {
-	q.BaseQueue.CheckVisibilityTimeouts() // Use base implementation
-}
-
-// DeleteMessageBatch deletes multiple messages at once
-func (q *queue) DeleteMessageBatch(receiptHandles []string) []common.BatchResult {
-	// Initialize results
-	results := make([]common.BatchResult, len(receiptHandles))
-	for i := range results {
-		results[i] = common.BatchResult{
-			Success:       false,
-			ReceiptHandle: receiptHandles[i],
-		}
-	}
-
-	// Lock the queue for the entire operation
-	q.Mu.Lock()
-	defer q.Mu.Unlock()
-
-	// Use the new message store to delete messages directly by receipt handle
-	for i, receiptHandle := range receiptHandles {
-		if receiptHandle == "" {
-			continue
-		}
-
-		// Get the message first to capture the message ID
-		msg, found := q.MessageStore.(*messageStore).GetMessageByReceipt(receiptHandle)
-		if !found {
-			continue
-		}
-
-		// Delete the message using its receipt handle
-		if q.MessageStore.(*messageStore).RemoveMessageByReceipt(receiptHandle) {
-			results[i].Success = true
-			results[i].MessageID = msg.Attributes.MessageID
-		}
-	}
-
-	return results
 }

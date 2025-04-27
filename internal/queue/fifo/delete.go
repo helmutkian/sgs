@@ -6,6 +6,10 @@ import (
 
 // DeleteMessage removes a message from the queue and handles FIFO-specific behavior for message group locks
 func (q *Queue) DeleteMessage(receiptHandle string) bool {
+	if receiptHandle == "" {
+		return false
+	}
+
 	// Find the message first to get its group ID before deleting it
 	var targetGroupID string
 	found := false
@@ -40,6 +44,10 @@ func (q *Queue) DeleteMessage(receiptHandle string) bool {
 
 // DeleteMessageBatch deletes multiple messages at once
 func (q *Queue) DeleteMessageBatch(receiptHandles []string) []common.BatchResult {
+	if len(receiptHandles) == 0 {
+		return []common.BatchResult{}
+	}
+
 	// Initialize results
 	results := make([]common.BatchResult, len(receiptHandles))
 	for i := range results {
